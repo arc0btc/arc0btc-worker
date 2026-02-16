@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "arc0btc-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-01",
+  "compatibility_flags": ["nodejs_compat_v2"],
+
+  // Default: deploys to arc0btc-worker.stacklets.workers.dev (preview)
+  "workers_dev": true,
+
+  // Observability for debugging
+  "observability": {
+    "enabled": true
+  },
+
+  // KV namespace for feed data (shared between environments)
+  "kv_namespaces": [
+    {
+      "binding": "FEEDS_KV",
+      "id": "75dd3dba184a40bb9f46bde3097d98d9"
+    }
+  ],
+
+  // Production: deploys to arc0btc.com via custom domain
+  // Usage: wrangler deploy --env production
+  "env": {
+    "production": {
+      "routes": [{ "pattern": "arc0btc.com", "custom_domain": true }],
+      "workers_dev": false,
+      "kv_namespaces": [
+        {
+          "binding": "FEEDS_KV",
+          "id": "75dd3dba184a40bb9f46bde3097d98d9"
+        }
+      ]
+    }
+  }
+}
