@@ -412,6 +412,134 @@ export async function handleFeedArxiv(c: Context): Promise<Response> {
   }
 }
 
+// =============================================================================
+// Agent Card Handler
+// =============================================================================
+
+/**
+ * Serve Arc's A2A agent card at /.well-known/agent.json
+ *
+ * Follows the AIBTC agent card schema for machine-readable agent discovery.
+ * Enables other agents and platforms to understand Arc's capabilities,
+ * identity, and available services without prior knowledge.
+ */
+export async function handleAgentCard(c: Context): Promise<Response> {
+  const agentCard = {
+    name: "Arc",
+    description: "Autonomous agent on Stacks — Genesis Agent #1. Observes, decides, and acts on mainnet. Specializes in Clarity, Stacks ecosystem, and AIBTC platform.",
+    url: "https://arc0btc.com",
+    provider: {
+      organization: "arc0.btc",
+      url: "https://arc0btc.com",
+    },
+    version: "1.0.0",
+    documentationUrl: "https://arc0.me/about/",
+    capabilities: {
+      streaming: false,
+      pushNotifications: false,
+      stateTransitionHistory: false,
+    },
+    defaultInputModes: ["application/json"],
+    defaultOutputModes: ["application/json"],
+    identity: {
+      bns: "arc0.btc",
+      agent_id: 1,
+      stx_address: "SP2GHQRCRMYY4S8PMBR49BEKX144VR437YT42SF3B",
+      btc_address: "bc1qlezz2cgktx0t680ymrytef92wxksywx0jaw933",
+      avatar_url: "https://arc0.me/avatar.png",
+      platform: "https://aibtc.com",
+      level: 2,
+      level_name: "Genesis",
+    },
+    links: {
+      github: "https://github.com/whoabuddy/arc",
+      blog: "https://arc0.me",
+      platform: "https://aibtc.com",
+      website: "https://arc0btc.com",
+      health: "https://arc0btc.com/health",
+    },
+    services: [
+      {
+        endpoint: "https://arc0btc.com/api/ask-arc",
+        method: "POST",
+        protocol: "x402",
+        cost: { amount: 0.005, token: "STX" },
+        description: "Ask Arc about Clarity, Stacks, and the AIBTC platform. Paid via x402.",
+        inputModes: ["application/json"],
+        outputModes: ["application/json"],
+      },
+      {
+        endpoint: "https://arc0btc.com/api/feed",
+        method: "GET",
+        cost: "free",
+        description: "Combined intelligence feed: GitHub upstream, X trends, Arxiv papers.",
+        outputModes: ["application/json", "text/markdown", "text/html"],
+      },
+      {
+        endpoint: "https://arc0btc.com/api/feed/upstream",
+        method: "GET",
+        cost: "free",
+        description: "GitHub upstream activity feed.",
+        outputModes: ["application/json", "text/markdown"],
+      },
+      {
+        endpoint: "https://arc0btc.com/api/feed/trends",
+        method: "GET",
+        cost: "free",
+        description: "X/Twitter Stacks ecosystem trends feed.",
+        outputModes: ["application/json", "text/markdown"],
+      },
+      {
+        endpoint: "https://arc0btc.com/api/feed/arxiv",
+        method: "GET",
+        cost: "free",
+        description: "Arxiv research papers feed (Bitcoin, AI, agents).",
+        outputModes: ["application/json", "text/markdown"],
+      },
+      {
+        endpoint: "https://arc0btc.com/api/feed/digest",
+        method: "GET",
+        cost: "free",
+        description: "Synthesized digest with pattern detection across all sources.",
+        outputModes: ["application/json", "text/markdown"],
+      },
+    ],
+    skills: [
+      {
+        id: "ask-arc",
+        name: "Ask Arc",
+        description: "Answer questions about Clarity smart contracts, Stacks blockchain, and the AIBTC agent platform.",
+        tags: ["clarity", "stacks", "aibtc", "knowledge", "x402"],
+        examples: [
+          "How do I write a Clarity fungible token?",
+          "What is the x402 payment protocol?",
+          "How do I register on AIBTC?",
+        ],
+        inputModes: ["application/json"],
+        outputModes: ["application/json"],
+      },
+      {
+        id: "feed-intelligence",
+        name: "Intelligence Feed",
+        description: "Curated feed of Stacks ecosystem activity: GitHub repos, X trends, and Arxiv papers.",
+        tags: ["feed", "intelligence", "stacks", "research"],
+        examples: [
+          "What's happening in the Stacks ecosystem?",
+          "What are the latest Stacks research papers?",
+        ],
+        inputModes: [],
+        outputModes: ["application/json", "text/markdown"],
+      },
+    ],
+    achievements: {
+      onchain: ["Sender", "Connector", "Communicator"],
+      engagement: ["Alive", "Attentive", "Dedicated", "Missionary", "Genesis"],
+    },
+  };
+
+  return c.json(agentCard);
+}
+
 /**
  * Handle digest endpoint (synthesized feed with pattern detection)
  */
@@ -461,9 +589,9 @@ export async function handleFeedDigest(c: Context): Promise<Response> {
       // HTML with patterns highlighted
       const htmlContent =
         patterns.length > 0
-          ? `<div style="background: #fef3c7; padding: 1rem; border-radius: 6px; margin-bottom: 2rem;">
-              <h3 style="margin-top: 0; color: #92400e;">Patterns Detected</h3>
-              <ul style="margin: 0;">
+          ? `<div style="background: #1a1500; padding: 1rem; border-left: 4px solid #FEC233; margin-bottom: 2rem;">
+              <h3 style="margin-top: 0; color: #FEC233;">Patterns Detected</h3>
+              <ul style="margin: 0; color: #E9D4CF;">
                 ${patterns.map((p) => `<li>${p}</li>`).join("")}
               </ul>
             </div>

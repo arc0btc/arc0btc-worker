@@ -13,6 +13,11 @@
     "enabled": true
   },
 
+  // Service binding to worker-logs for centralized logging
+  "services": [
+    { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
+  ],
+
   // KV namespace for feed data (shared between environments)
   "kv_namespaces": [
     {
@@ -27,6 +32,9 @@
     "production": {
       "routes": [{ "pattern": "arc0btc.com", "custom_domain": true }],
       "workers_dev": false,
+      "services": [
+        { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
+      ],
       "kv_namespaces": [
         {
           "binding": "FEEDS_KV",

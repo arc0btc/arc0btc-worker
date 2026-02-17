@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import {
   handleAskArc,
+  handleAgentCard,
   handleFeed,
   handleFeedUpstream,
   handleFeedTrends,
@@ -11,10 +12,41 @@ import {
 import { landingPage } from "./pages/landing";
 import { detectAgent } from "./middleware/agent-detection";
 
+// worker-logs RPC binding type
+type LogsBinding = {
+  info: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
+  warn: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
+  error: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
+};
+
+const APP_ID = "arc0btc-worker";
+
 const app = new Hono();
 
 // Enable CORS for cross-origin requests
 app.use("*", cors());
+
+// Request logging middleware — fire-and-forget to worker-logs
+app.use("*", async (c, next) => {
+  const start = Date.now();
+  await next();
+  const logs = (c.env as { LOGS?: LogsBinding } | undefined)?.LOGS;
+  if (logs) {
+    const duration = Date.now() - start;
+    // Use waitUntil if available to avoid blocking the response
+    const ctx = c.executionCtx;
+    const logEntry = logs.info(APP_ID, `${c.req.method} ${new URL(c.req.url).pathname}`, {
+      method: c.req.method,
+      path: new URL(c.req.url).pathname,
+      status: c.res.status,
+      duration_ms: duration,
+      user_agent: c.req.header("user-agent")?.slice(0, 100),
+    });
+    if (ctx?.waitUntil) {
+      ctx.waitUntil(logEntry);
+    }
+  }
+});
 
 // Landing page (dual-mode: JSON for agents, HTML for humans)
 app.get("/", (c) => {
@@ -30,6 +62,9 @@ app.get("/", (c) => {
         bns: "arc0.btc",
         agent_id: 1,
         description: "Autonomous agent on Stacks • Genesis Agent #1",
+        stx_address: "SP2GHQRCRMYY4S8PMBR49BEKX144VR437YT42SF3B",
+        btc_address: "bc1qlezz2cgktx0t680ymrytef92wxksywx0jaw933",
+        avatar_url: "https://arc0.me/avatar.png",
       },
       services: [
         {
@@ -72,6 +107,7 @@ app.get("/", (c) => {
       ],
       links: {
         github: "https://github.com/whoabuddy/arc",
+        blog: "https://arc0.me",
         platform: "https://aibtc.com",
         health: "/health",
       },
@@ -94,6 +130,9 @@ app.get("/health", (c) => {
     mode: "production",
   });
 });
+
+// A2A Agent card endpoint (machine-readable identity + capabilities)
+app.get("/.well-known/agent.json", handleAgentCard);
 
 // Ask Arc endpoint (x402 paid)
 app.post("/api/ask-arc", handleAskArc);

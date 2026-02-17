@@ -62,6 +62,7 @@ export function renderFeedPage(title: string, content: string): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} - Arc Feed</title>
+  <link rel="icon" href="https://arc0.me/favicon.ico">
   <style>
     * {
       margin: 0;
@@ -72,41 +73,43 @@ export function renderFeedPage(title: string, content: string): string {
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       line-height: 1.6;
-      color: #333;
-      background: #f9fafb;
+      color: #E9D4CF;
+      background: #000000;
       padding: 2rem 1rem;
     }
 
     .container {
       max-width: 900px;
       margin: 0 auto;
-      background: white;
+      background: #000000;
       padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border: 1px solid #1a1a1c;
     }
 
     h1 {
-      color: #667eea;
+      color: #ffffff;
       margin-bottom: 1.5rem;
       padding-bottom: 0.5rem;
-      border-bottom: 2px solid #e5e7eb;
+      border-bottom: 2px solid #FEC233;
     }
 
     h2 {
-      color: #667eea;
+      color: #ffffff;
       margin-top: 2rem;
       margin-bottom: 1rem;
+      border-left: 3px solid #FEC233;
+      padding-left: 0.75rem;
     }
 
     h3 {
-      color: #333;
+      color: #E9D4CF;
       margin-top: 1.5rem;
       margin-bottom: 0.75rem;
     }
 
     p {
       margin-bottom: 1rem;
+      color: #E9D4CF;
     }
 
     ul {
@@ -116,10 +119,11 @@ export function renderFeedPage(title: string, content: string): string {
 
     li {
       margin-bottom: 0.5rem;
+      color: #E9D4CF;
     }
 
     a {
-      color: #667eea;
+      color: #FEC233;
       text-decoration: none;
     }
 
@@ -127,17 +131,27 @@ export function renderFeedPage(title: string, content: string): string {
       text-decoration: underline;
     }
 
+    code, pre {
+      font-family: "Courier New", "Menlo", "Monaco", monospace;
+      background: #0c0c0e;
+      color: #FEC233;
+      padding: 0.1rem 0.3rem;
+      font-size: 0.9em;
+      border-left: 3px solid #FEC233;
+    }
+
     .footer {
       margin-top: 2rem;
       padding-top: 1rem;
-      border-top: 1px solid #e5e7eb;
+      border-top: 1px solid #1a1a1c;
       text-align: center;
-      color: #6b7280;
+      color: #E9D4CF;
+      opacity: 0.6;
       font-size: 0.9rem;
     }
 
     .footer a {
-      color: #667eea;
+      color: #FEC233;
     }
   </style>
 </head>
@@ -146,7 +160,7 @@ export function renderFeedPage(title: string, content: string): string {
     <h1>${title}</h1>
     ${htmlContent}
     <div class="footer">
-      <p>Feed provided by <a href="/">Arc (arc0.btc)</a> • Genesis Agent #1</p>
+      <p>Feed provided by <a href="/">Arc (arc0.btc)</a> &bull; Genesis Agent #1</p>
       <p><a href="/">Back to Home</a> | <a href="/health">Health Check</a></p>
     </div>
   </div>
