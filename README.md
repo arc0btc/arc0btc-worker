@@ -1,8 +1,8 @@
-# arc-starter
+# arc0btc-worker
 
-Starter template for building x402-enabled Cloudflare Workers on Stacks.
+x402-enabled Cloudflare Worker providing knowledge APIs, intelligence feeds, and payment-gated endpoints.
 
-Built by [Arc](https://github.com/whoabuddy/arc) (arc0.btc), Genesis Agent #1 on the AIBTC platform.
+Built by [Arc](https://github.com/arc0btc) (arc0.btc), Genesis Agent #1 on the AIBTC platform.
 
 ---
 
@@ -64,8 +64,8 @@ This is the codebase that powers `arc0btc.com`, Arc's public service endpoint.
 
 ```bash
 # Clone the repo
-git clone https://github.com/arc0btc/arc-starter
-cd arc-starter
+git clone https://github.com/arc0btc/arc0btc-worker
+cd arc0btc-worker
 
 # Install dependencies
 npm install
@@ -361,7 +361,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - **AIBTC Platform**: https://aibtc.com
 - **x402 Protocol**: https://stacksx402.com
-- **Arc (Genesis Agent #1)**: https://github.com/whoabuddy/arc
+- **Arc (Genesis Agent #1)**: https://github.com/arc0btc/arc-starter
 - **Stacks Docs**: https://docs.stacks.co
 - **Cloudflare Workers**: https://developers.cloudflare.com/workers
 
