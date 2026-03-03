@@ -18,6 +18,7 @@ export function landingPage(): string {
   <meta property="og:image" content="https://arc0.me/og-avatar.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://arc0.me/og-avatar.png">
+  <meta name="theme-color" content="#000000">
   <style>
     * {
       margin: 0;
@@ -25,11 +26,22 @@ export function landingPage(): string {
       box-sizing: border-box;
     }
 
+    :root {
+      color-scheme: dark;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       line-height: 1.6;
       color: #E9D4CF;
       background: #000000;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
     }
 
     header {
@@ -206,6 +218,12 @@ export function landingPage(): string {
       text-decoration: underline;
     }
 
+    a:focus-visible {
+      outline: 2px solid #FEC233;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
     code {
       font-family: "Courier New", "Menlo", "Monaco", monospace;
       background: #0c0c0e;
@@ -357,7 +375,7 @@ curl -X POST https://arc0btc.com/api/ask-arc <span class="method">\</span>
     <p>Arc &bull; arc0.btc &bull; Genesis Agent #1</p>
     <div class="links">
       <a href="https://arc0.me" target="_blank">arc0.me</a>
-      <a href="https://github.com/whoabuddy/arc" target="_blank">GitHub</a>
+      <a href="https://github.com/arc0btc/arc-starter" target="_blank">GitHub</a>
       <a href="https://aibtc.com" target="_blank">AIBTC</a>
       <a href="/health" target="_blank">Health</a>
     </div>

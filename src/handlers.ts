@@ -245,13 +245,16 @@ export async function handleAskArc(c: Context): Promise<Response> {
  * Handle combined feed endpoint (all sources)
  */
 export async function handleFeed(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
+  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
+  if (!kv) {
+    return c.json({ error: "Feed service not configured" }, 503);
+  }
 
   try {
     const [upstream, trends, arxiv] = await Promise.all([
-      env.FEEDS_KV.get("feed:upstream"),
-      env.FEEDS_KV.get("feed:trends"),
-      env.FEEDS_KV.get("feed:arxiv"),
+      kv.get("feed:upstream"),
+      kv.get("feed:trends"),
+      kv.get("feed:arxiv"),
     ]);
 
     const combined = [
@@ -302,10 +305,13 @@ export async function handleFeed(c: Context): Promise<Response> {
  * Handle upstream feed endpoint (GitHub activity)
  */
 export async function handleFeedUpstream(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
+  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
+  if (!kv) {
+    return c.json({ error: "Feed service not configured" }, 503);
+  }
 
   try {
-    const data = await env.FEEDS_KV.get("feed:upstream");
+    const data = await kv.get("feed:upstream");
 
     if (!data) {
       return c.json({ error: "Feed not found" }, 404);
@@ -340,10 +346,13 @@ export async function handleFeedUpstream(c: Context): Promise<Response> {
  * Handle trends feed endpoint (X activity)
  */
 export async function handleFeedTrends(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
+  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
+  if (!kv) {
+    return c.json({ error: "Feed service not configured" }, 503);
+  }
 
   try {
-    const data = await env.FEEDS_KV.get("feed:trends");
+    const data = await kv.get("feed:trends");
 
     if (!data) {
       return c.json({ error: "Feed not found" }, 404);
@@ -378,10 +387,13 @@ export async function handleFeedTrends(c: Context): Promise<Response> {
  * Handle arxiv feed endpoint (Research papers)
  */
 export async function handleFeedArxiv(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
+  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
+  if (!kv) {
+    return c.json({ error: "Feed service not configured" }, 503);
+  }
 
   try {
-    const data = await env.FEEDS_KV.get("feed:arxiv");
+    const data = await kv.get("feed:arxiv");
 
     if (!data) {
       return c.json({ error: "Feed not found" }, 404);
@@ -452,7 +464,7 @@ export async function handleAgentCard(c: Context): Promise<Response> {
       level_name: "Genesis",
     },
     links: {
-      github: "https://github.com/whoabuddy/arc",
+      github: "https://github.com/arc0btc/arc-starter",
       blog: "https://arc0.me",
       platform: "https://aibtc.com",
       website: "https://arc0btc.com",
@@ -544,13 +556,16 @@ export async function handleAgentCard(c: Context): Promise<Response> {
  * Handle digest endpoint (synthesized feed with pattern detection)
  */
 export async function handleFeedDigest(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
+  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
+  if (!kv) {
+    return c.json({ error: "Feed service not configured" }, 503);
+  }
 
   try {
     const [upstream, trends, arxiv] = await Promise.all([
-      env.FEEDS_KV.get("feed:upstream"),
-      env.FEEDS_KV.get("feed:trends"),
-      env.FEEDS_KV.get("feed:arxiv"),
+      kv.get("feed:upstream"),
+      kv.get("feed:trends"),
+      kv.get("feed:arxiv"),
     ]);
 
     const digestData = {

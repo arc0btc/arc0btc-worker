@@ -33,7 +33,6 @@ app.use("*", async (c, next) => {
   const logs = (c.env as { LOGS?: LogsBinding } | undefined)?.LOGS;
   if (logs) {
     const duration = Date.now() - start;
-    // Use waitUntil if available to avoid blocking the response
     const ctx = c.executionCtx;
     const logEntry = logs.info(APP_ID, `${c.req.method} ${new URL(c.req.url).pathname}`, {
       method: c.req.method,
@@ -41,6 +40,8 @@ app.use("*", async (c, next) => {
       status: c.res.status,
       duration_ms: duration,
       user_agent: c.req.header("user-agent")?.slice(0, 100),
+    }).catch((err: unknown) => {
+      console.error("[logging] Failed to send log:", err);
     });
     if (ctx?.waitUntil) {
       ctx.waitUntil(logEntry);
@@ -106,7 +107,7 @@ app.get("/", (c) => {
         },
       ],
       links: {
-        github: "https://github.com/whoabuddy/arc",
+        github: "https://github.com/arc0btc/arc-starter",
         blog: "https://arc0.me",
         platform: "https://aibtc.com",
         health: "/health",
