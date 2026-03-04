@@ -299,118 +299,52 @@ export async function handleFeed(c: Context): Promise<Response> {
 }
 
 /**
- * Handle upstream feed endpoint (GitHub activity)
+ * Factory that creates a feed handler for a given KV key and display title.
+ *
+ * All three individual feed endpoints (upstream, trends, arxiv) share
+ * identical logic — fetch from KV, detect agent format, return JSON /
+ * markdown / HTML. The only differences are the KV key and the page title.
  */
-export async function handleFeedUpstream(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
+function createFeedHandler(kvKey: string, title: string) {
+  return async (c: Context): Promise<Response> => {
+    const env = c.env as { FEEDS_KV: KVNamespace };
 
-  try {
-    const data = await env.FEEDS_KV.get("feed:upstream");
+    try {
+      const data = await env.FEEDS_KV.get(kvKey);
 
-    if (!data) {
-      return c.json({ error: "Feed not found" }, 404);
+      if (!data) {
+        return c.json({ error: "Feed not found" }, 404);
+      }
+
+      const agent = detectAgent(
+        c.req.header("user-agent") || "",
+        c.req.header("accept") || ""
+      );
+
+      if (agent.preferredFormat === "json") {
+        return c.json({
+          source: kvKey.replace("feed:", ""),
+          content: data,
+          format: "markdown",
+          timestamp: new Date().toISOString(),
+        });
+      } else if (agent.preferredFormat === "markdown") {
+        return c.text(data, 200, {
+          "Content-Type": "text/markdown",
+        });
+      } else {
+        return c.html(renderFeedPage(title, data));
+      }
+    } catch (error) {
+      console.error(`[${kvKey}] Error fetching feed:`, error);
+      return c.json({ error: "Failed to fetch feed data" }, 500);
     }
-
-    const agent = detectAgent(
-      c.req.header("user-agent") || "",
-      c.req.header("accept") || ""
-    );
-
-    if (agent.preferredFormat === "json") {
-      return c.json({
-        source: "upstream",
-        content: data,
-        format: "markdown",
-        timestamp: new Date().toISOString(),
-      });
-    } else if (agent.preferredFormat === "markdown") {
-      return c.text(data, 200, {
-        "Content-Type": "text/markdown",
-      });
-    } else {
-      return c.html(renderFeedPage("Upstream Activity", data));
-    }
-  } catch (error) {
-    console.error("[feed:upstream] Error fetching feed:", error);
-    return c.json({ error: "Failed to fetch feed data" }, 500);
-  }
+  };
 }
 
-/**
- * Handle trends feed endpoint (X activity)
- */
-export async function handleFeedTrends(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
-
-  try {
-    const data = await env.FEEDS_KV.get("feed:trends");
-
-    if (!data) {
-      return c.json({ error: "Feed not found" }, 404);
-    }
-
-    const agent = detectAgent(
-      c.req.header("user-agent") || "",
-      c.req.header("accept") || ""
-    );
-
-    if (agent.preferredFormat === "json") {
-      return c.json({
-        source: "trends",
-        content: data,
-        format: "markdown",
-        timestamp: new Date().toISOString(),
-      });
-    } else if (agent.preferredFormat === "markdown") {
-      return c.text(data, 200, {
-        "Content-Type": "text/markdown",
-      });
-    } else {
-      return c.html(renderFeedPage("Ecosystem Trends", data));
-    }
-  } catch (error) {
-    console.error("[feed:trends] Error fetching feed:", error);
-    return c.json({ error: "Failed to fetch feed data" }, 500);
-  }
-}
-
-/**
- * Handle arxiv feed endpoint (Research papers)
- */
-export async function handleFeedArxiv(c: Context): Promise<Response> {
-  const env = c.env as { FEEDS_KV: KVNamespace };
-
-  try {
-    const data = await env.FEEDS_KV.get("feed:arxiv");
-
-    if (!data) {
-      return c.json({ error: "Feed not found" }, 404);
-    }
-
-    const agent = detectAgent(
-      c.req.header("user-agent") || "",
-      c.req.header("accept") || ""
-    );
-
-    if (agent.preferredFormat === "json") {
-      return c.json({
-        source: "arxiv",
-        content: data,
-        format: "markdown",
-        timestamp: new Date().toISOString(),
-      });
-    } else if (agent.preferredFormat === "markdown") {
-      return c.text(data, 200, {
-        "Content-Type": "text/markdown",
-      });
-    } else {
-      return c.html(renderFeedPage("Research Papers", data));
-    }
-  } catch (error) {
-    console.error("[feed:arxiv] Error fetching feed:", error);
-    return c.json({ error: "Failed to fetch feed data" }, 500);
-  }
-}
+export const handleFeedUpstream = createFeedHandler("feed:upstream", "Upstream Activity");
+export const handleFeedTrends = createFeedHandler("feed:trends", "Ecosystem Trends");
+export const handleFeedArxiv = createFeedHandler("feed:arxiv", "Research Papers");
 
 // =============================================================================
 // Agent Card Handler
