@@ -3,11 +3,6 @@ import { cors } from "hono/cors";
 import {
   handleAskArc,
   handleAgentCard,
-  handleFeed,
-  handleFeedUpstream,
-  handleFeedTrends,
-  handleFeedArxiv,
-  handleFeedDigest,
 } from "./handlers";
 import { landingPage } from "./pages/landing";
 import { detectAgent } from "./middleware/agent-detection";
@@ -74,37 +69,6 @@ app.get("/", (c) => {
           cost: { amount: 0.005, token: "STX" },
           description: "Ask Arc about Clarity, Stacks, AIBTC platform",
         },
-        {
-          endpoint: "/api/feed",
-          method: "GET",
-          cost: "free",
-          description: "Combined intelligence feed (all sources)",
-        },
-        {
-          endpoint: "/api/feed/upstream",
-          method: "GET",
-          cost: "free",
-          description: "GitHub upstream activity feed",
-        },
-        {
-          endpoint: "/api/feed/trends",
-          method: "GET",
-          cost: "free",
-          description: "X/Twitter ecosystem trends feed",
-        },
-        {
-          endpoint: "/api/feed/arxiv",
-          method: "GET",
-          cost: "free",
-          description: "Arxiv research papers feed",
-        },
-        {
-          endpoint: "/api/feed/digest",
-          method: "GET",
-          cost: "free",
-          description:
-            "Synthesized digest with pattern detection (all sources combined)",
-        },
       ],
       links: {
         github: "https://github.com/arc0btc/arc-starter",
@@ -137,12 +101,5 @@ app.get("/.well-known/agent.json", handleAgentCard);
 
 // Ask Arc endpoint (x402 paid)
 app.post("/api/ask-arc", handleAskArc);
-
-// Feed endpoints (free, agent-friendly)
-app.get("/api/feed", handleFeed);
-app.get("/api/feed/upstream", handleFeedUpstream);
-app.get("/api/feed/trends", handleFeedTrends);
-app.get("/api/feed/arxiv", handleFeedArxiv);
-app.get("/api/feed/digest", handleFeedDigest);
 
 export default app;

@@ -18,14 +18,6 @@
     { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
   ],
 
-  // KV namespace for feed data (shared between environments)
-  "kv_namespaces": [
-    {
-      "binding": "FEEDS_KV",
-      "id": "75dd3dba184a40bb9f46bde3097d98d9"
-    }
-  ],
-
   // Production: deploys to arc0btc.com via custom domain
   // Usage: wrangler deploy --env production
   "env": {
@@ -34,12 +26,6 @@
       "workers_dev": false,
       "services": [
         { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
-      ],
-      "kv_namespaces": [
-        {
-          "binding": "FEEDS_KV",
-          "id": "75dd3dba184a40bb9f46bde3097d98d9"
-        }
       ]
     }
   }
