@@ -10,7 +10,7 @@
 
   // Observability for debugging
   "observability": {
-    "enabled": true
+    "enabled": false
   },
 
   // Service binding to worker-logs for centralized logging
