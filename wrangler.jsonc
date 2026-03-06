@@ -10,7 +10,7 @@
 
   // Observability for debugging
   "observability": {
-    "enabled": true
+    "enabled": false
   },
 
   // Service binding to worker-logs for centralized logging
@@ -32,6 +32,9 @@
     "production": {
       "routes": [{ "pattern": "arc0btc.com", "custom_domain": true }],
       "workers_dev": false,
+      "observability": {
+        "enabled": false
+      },
       "services": [
         { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
       ],
