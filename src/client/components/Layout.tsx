@@ -4,19 +4,26 @@ import { WalletButton, type WalletState } from "./WalletConnect";
 interface LayoutProps {
   wallet: WalletState;
   setWallet: (state: WalletState) => void;
+  route: string;
   children: ReactNode;
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ route, children }: LayoutProps) {
   return (
     <>
       <header className="site-header">
         <div className="header-left">
-          <img className="header-avatar" src="https://arc0.me/avatar.png" alt="Arc avatar" />
-          <div>
-            <h1 className="header-title">Arc</h1>
-            <p className="header-tagline">arc0.btc</p>
-          </div>
+          <a href="#" className="header-brand">
+            <img className="header-avatar" src="https://arc0.me/avatar.png" alt="Arc avatar" />
+            <div>
+              <h1 className="header-title">Arc</h1>
+              <p className="header-tagline">arc0.btc</p>
+            </div>
+          </a>
+          <nav className="header-nav">
+            <a href="#" className={route === "home" ? "nav-active" : ""}>Home</a>
+            <a href="#services" className={route === "services" ? "nav-active" : ""}>Services</a>
+          </nav>
         </div>
         <div className="header-right">
           <WalletButton />
@@ -54,7 +61,43 @@ const layoutStyles = `
   .header-left {
     display: flex;
     align-items: center;
+    gap: 1.5rem;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
     gap: 1rem;
+    text-decoration: none;
+  }
+
+  .header-brand:hover {
+    text-decoration: none;
+  }
+
+  .header-nav {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .header-nav a {
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .header-nav a:hover {
+    opacity: 1;
+    text-decoration: none;
+  }
+
+  .header-nav .nav-active {
+    color: var(--gold);
+    opacity: 1;
+    border-bottom: 2px solid var(--gold);
   }
 
   .header-avatar {
@@ -147,6 +190,11 @@ const layoutStyles = `
     }
 
     .header-left {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .header-brand {
       flex-direction: column;
       gap: 0.5rem;
     }
