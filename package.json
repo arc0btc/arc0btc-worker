@@ -4,22 +4,33 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:client": "vite build --config vite.config.client.ts",
+    "dev:client": "vite dev --config vite.config.client.ts",
     "dev": "wrangler dev --local",
-    "deploy": "wrangler deploy",
-    "deploy:production": "wrangler deploy --env production",
-    "deploy:dry": "wrangler deploy --dry-run",
-    "deploy:production:dry": "wrangler deploy --env production --dry-run",
+    "deploy": "npm run build:client && wrangler deploy",
+    "deploy:production": "npm run build:client && wrangler deploy --env production",
+    "deploy:dry": "npm run build:client && wrangler deploy --dry-run",
+    "deploy:production:dry": "npm run build:client && wrangler deploy --env production --dry-run",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "hono": "^4.6.0"
+    "@stacks/connect": "^8.2.5",
+    "@stacks/network": "^7.3.1",
+    "@stacks/transactions": "^7.3.1",
+    "hono": "^4.6.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.12.0",
     "@cloudflare/workers-types": "^4.20241127.0",
     "@types/node": "^22.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
     "typescript": "^5.7.0",
+    "vite": "^7.3.1",
     "vitest": "^3.2.0",
     "wrangler": "^4.0.0"
   }

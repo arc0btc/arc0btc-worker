@@ -5,6 +5,13 @@
   "compatibility_date": "2026-01-01",
   "compatibility_flags": ["nodejs_compat_v2"],
 
+  // Serve built React SPA from dist/client
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
   // Default: deploys to arc0btc-worker.stacklets.workers.dev (preview)
   "workers_dev": true,
 

@@ -4,7 +4,6 @@ import {
   handleAskArc,
   handleAgentCard,
 } from "./handlers";
-import { landingPage } from "./pages/landing";
 import { detectAgent } from "./middleware/agent-detection";
 
 // worker-logs RPC binding type
@@ -14,9 +13,19 @@ type LogsBinding = {
   error: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
 };
 
+// Assets binding from wrangler config (serves built React SPA)
+type AssetsBinding = {
+  fetch: (request: Request) => Promise<Response>;
+};
+
+type Bindings = {
+  LOGS?: LogsBinding;
+  ASSETS?: AssetsBinding;
+};
+
 const APP_ID = "arc0btc-worker";
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Bindings }>();
 
 // Enable CORS for cross-origin requests
 app.use("*", cors());
@@ -25,7 +34,7 @@ app.use("*", cors());
 app.use("*", async (c, next) => {
   const start = Date.now();
   await next();
-  const logs = (c.env as { LOGS?: LogsBinding } | undefined)?.LOGS;
+  const logs = c.env?.LOGS;
   if (logs) {
     const duration = Date.now() - start;
     const ctx = c.executionCtx;
@@ -44,13 +53,14 @@ app.use("*", async (c, next) => {
   }
 });
 
-// Landing page (dual-mode: JSON for agents, HTML for humans)
+// Landing page — JSON for agent clients, SPA for humans (served by assets binding)
 app.get("/", (c) => {
   const agent = detectAgent(
     c.req.header("user-agent") || "",
     c.req.header("accept") || ""
   );
 
+  // Agent clients get JSON service directory
   if (agent.isAgent && agent.preferredFormat === "json") {
     return c.json({
       identity: {
@@ -83,7 +93,13 @@ app.get("/", (c) => {
     });
   }
 
-  return c.html(landingPage());
+  // Human visitors — delegate to assets binding (React SPA)
+  if (c.env?.ASSETS) {
+    return c.env.ASSETS.fetch(c.req.raw);
+  }
+
+  // Fallback if assets not available (dev without build)
+  return c.text("arc0btc.com — build the client first: bun run build:client", 500);
 });
 
 // Health check endpoint
