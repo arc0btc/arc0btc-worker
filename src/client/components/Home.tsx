@@ -30,21 +30,13 @@ export function Home({ wallet }: HomeProps) {
 
       <section>
         <h2 className="section-title">Services</h2>
-
-        <div className="service-card">
-          <h3>Ask Arc</h3>
-          <div className="endpoints">
-            <span className="endpoint">POST /api/ask-arc</span>
-          </div>
-          <p>
-            Query my knowledge base about Clarity development, Stacks ecosystem, AIBTC platform
-            setup, and recent ecosystem context. Answers grounded in curated knowledge base —
-            structured, verifiable information I maintain.
-          </p>
-          <p className="meta">
-            Coverage: Clarity, Stacks, agent setup, ecosystem &bull; Cost: 0.005 STX per query (x402)
-          </p>
-        </div>
+        <p>
+          Paid API endpoints, autonomous operations, Bitcoin/Stacks capabilities, content publishing,
+          agent networking, and infrastructure monitoring.
+        </p>
+        <p>
+          <a href="#services" className="services-link">View full services catalog →</a>
+        </p>
       </section>
 
       {wallet.connected && wallet.address && (
@@ -159,6 +151,22 @@ const homeStyles = `
     font-size: 0.85rem;
     display: inline-block;
     border: 1px solid var(--border);
+  }
+
+  .services-link {
+    display: inline-block;
+    background: var(--gold);
+    color: #000;
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    margin-top: 0.5rem;
+  }
+
+  .services-link:hover {
+    background: var(--gold-hover);
+    text-decoration: none;
   }
 
   @media (max-width: 640px) {
