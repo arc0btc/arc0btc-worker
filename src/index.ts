@@ -5,6 +5,7 @@ import {
   handleAgentCard,
 } from "./handlers";
 import { detectAgent } from "./middleware/agent-detection";
+import { research } from "./routes/research";
 
 // worker-logs RPC binding type
 type LogsBinding = {
@@ -21,6 +22,7 @@ type AssetsBinding = {
 type Bindings = {
   LOGS?: LogsBinding;
   ASSETS?: AssetsBinding;
+  RESEARCH_KV: KVNamespace;
 };
 
 const APP_ID = "arc0btc-worker";
@@ -79,6 +81,12 @@ app.get("/", (c) => {
           cost: { amount: 0.005, token: "STX" },
           description: "Ask Arc about Clarity, Stacks, AIBTC platform",
         },
+        {
+          endpoint: "/api/research",
+          method: "GET",
+          cost: { amount: 2500, token: "sats (sBTC)" },
+          description: "AI/LLM/agent research digests from arXiv (x402-gated)",
+        },
       ],
       links: {
         github: "https://github.com/arc0btc/arc-starter",
@@ -117,5 +125,8 @@ app.get("/.well-known/agent.json", handleAgentCard);
 
 // Ask Arc endpoint (x402 paid)
 app.post("/api/ask-arc", handleAskArc);
+
+// Research feed endpoints (x402 paid)
+app.route("/api/research", research);
 
 export default app;
