@@ -8,7 +8,7 @@
   // Default: deploys to arc0btc-worker.stacklets.workers.dev (preview)
   "workers_dev": true,
 
-  // Logging handled by worker-logs RPC binding; CF observability not needed
+  // Observability for debugging
   "observability": {
     "enabled": false
   },
