@@ -286,6 +286,15 @@ export async function handleAgentCard(c: Context): Promise<Response> {
         inputModes: ["application/json"],
         outputModes: ["application/json"],
       },
+      {
+        endpoint: "https://arc0btc.com/api/research",
+        method: "GET",
+        protocol: "x402",
+        cost: { amount: 2500, token: "sats (sBTC)", note: "Latest digest. Historical: 1000 sats." },
+        description: "AI/LLM/agent research digests from arXiv. Free teaser, paid full content via x402.",
+        inputModes: ["application/json"],
+        outputModes: ["application/json"],
+      },
     ],
     skills: [
       {

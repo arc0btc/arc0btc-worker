@@ -20,6 +20,11 @@
     "enabled": true
   },
 
+  // KV namespace for research digests
+  "kv_namespaces": [
+    { "binding": "RESEARCH_KV", "id": "32f0010c773d42c1bad0ca3125817544" }
+  ],
+
   // Service binding to worker-logs for centralized logging
   "services": [
     { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
@@ -31,6 +36,9 @@
     "production": {
       "routes": [{ "pattern": "arc0btc.com", "custom_domain": true }],
       "workers_dev": false,
+      "kv_namespaces": [
+        { "binding": "RESEARCH_KV", "id": "32f0010c773d42c1bad0ca3125817544" }
+      ],
       "services": [
         { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
       ]
