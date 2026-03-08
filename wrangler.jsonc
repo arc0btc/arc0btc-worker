@@ -8,9 +8,9 @@
   // Default: deploys to arc0btc-worker.stacklets.workers.dev (preview)
   "workers_dev": true,
 
-  // Observability for debugging
+  // Observability disabled — logging handled by worker-logs RPC binding
   "observability": {
-    "enabled": true
+    "enabled": false
   },
 
   // Service binding to worker-logs for centralized logging
@@ -32,6 +32,9 @@
     "production": {
       "routes": [{ "pattern": "arc0btc.com", "custom_domain": true }],
       "workers_dev": false,
+      "observability": {
+        "enabled": false
+      },
       "services": [
         { "binding": "LOGS", "service": "worker-logs", "entrypoint": "LogsRPC" }
       ],
