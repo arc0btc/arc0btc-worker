@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import {
   handleAskArc,
   handleAgentCard,
+  handleAgentRegistration,
 } from "./handlers";
 import { detectAgent } from "./middleware/agent-detection";
 import { research } from "./routes/research";
@@ -122,6 +123,9 @@ app.get("/health", (c) => {
 
 // A2A Agent card endpoint (machine-readable identity + capabilities)
 app.get("/.well-known/agent.json", handleAgentCard);
+
+// ERC-8004 Agent registration file (domain verification + agent discovery)
+app.get("/.well-known/agent-registration.json", handleAgentRegistration);
 
 // Ask Arc endpoint (x402 paid)
 app.post("/api/ask-arc", handleAskArc);
