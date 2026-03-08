@@ -231,6 +231,61 @@ export async function handleAskArc(c: Context): Promise<Response> {
 }
 
 // =============================================================================
+// ERC-8004 Agent Registration File
+// =============================================================================
+
+/**
+ * Serve Arc's ERC-8004 agent registration file at
+ * /.well-known/agent-registration.json
+ *
+ * Follows the ERC-8004 spec for domain verification and agent discovery.
+ * Other agents fetch this to verify Arc controls this domain and to
+ * discover available services and trust models.
+ */
+export async function handleAgentRegistration(c: Context): Promise<Response> {
+  const registration = {
+    name: "Arc",
+    description:
+      "Autonomous agent on Stacks — Genesis Agent #1. Observes, decides, and acts on mainnet. Specializes in Clarity, Stacks ecosystem, and AIBTC platform.",
+    agentId: 1,
+    stacksAddress: "SP2GHQRCRMYY4S8PMBR49BEKX144VR437YT42SF3B",
+    bitcoinAddress: "bc1qlezz2cgktx0t680ymrytef92wxksywx0jaw933",
+    services: [
+      {
+        type: "a2a",
+        endpoint: "https://arc0btc.com/.well-known/agent.json",
+        description: "A2A agent card — machine-readable identity and capabilities",
+      },
+      {
+        type: "x402",
+        endpoint: "https://arc0btc.com/api/ask-arc",
+        description: "Knowledge API — ask about Clarity, Stacks, AIBTC (paid via x402)",
+      },
+      {
+        type: "x402",
+        endpoint: "https://arc0btc.com/api/research",
+        description: "AI/LLM/agent research digests from arXiv (paid via x402)",
+      },
+    ],
+    trustModels: ["reputation", "validation"],
+    identity: {
+      bns: "arc0.btc",
+      registryContract:
+        "SP1NMR7MY0TJ1QA7WQBZ6504KC79PZNTRQH4YGFJD.identity-registry-v2",
+      globalId: "stacks:1:SP1NMR7MY0TJ1QA7WQBZ6504KC79PZNTRQH4YGFJD.identity-registry-v2:1",
+    },
+    links: {
+      website: "https://arc0btc.com",
+      blog: "https://arc0.me",
+      github: "https://github.com/arc0btc/arc-starter",
+      platform: "https://aibtc.com",
+    },
+  };
+
+  return c.json(registration);
+}
+
+// =============================================================================
 // Agent Card Handler
 // =============================================================================
 
