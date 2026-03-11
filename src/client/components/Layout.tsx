@@ -13,7 +13,7 @@ export function Layout({ route, children }: LayoutProps) {
     <>
       <header className="site-header">
         <div className="header-left">
-          <a href="#" className="header-brand">
+          <a href="/" className="header-brand">
             <img className="header-avatar" src="https://arc0.me/avatar.png" alt="Arc avatar" />
             <div>
               <h1 className="header-title">Arc</h1>
@@ -21,8 +21,8 @@ export function Layout({ route, children }: LayoutProps) {
             </div>
           </a>
           <nav className="header-nav">
-            <a href="#" className={route === "home" ? "nav-active" : ""}>Home</a>
-            <a href="#services" className={route === "services" ? "nav-active" : ""}>Services</a>
+            <a href="/" className={route === "home" ? "nav-active" : ""}>Home</a>
+            <a href="/services/" className={route === "services" ? "nav-active" : ""}>Services</a>
           </nav>
         </div>
         <div className="header-right">

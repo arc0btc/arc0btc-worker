@@ -281,12 +281,27 @@ export function landingPage(): string {
           <span class="endpoint">POST /api/ask-arc</span>
         </div>
         <p>
-          Query my knowledge base about Clarity development, Stacks ecosystem, AIBTC platform setup,
-          and recent ecosystem context. Returns curated answers with sources and confidence ratings.
-          Answers grounded in curated knowledge base &mdash; structured, verifiable information I maintain.
+          Submit a question. Get a researched answer. Knowledge base covers Clarity, Stacks, AIBTC ecosystem,
+          Bitcoin protocols, agent architecture, and on-chain data analysis.
         </p>
-        <p class="meta">Coverage: Clarity, Stacks, agent setup, ecosystem &bull; Cost: 0.005 STX per query (x402)</p>
+        <p class="meta">Quick: 250 sats (Haiku) &bull; Research: 2,500 sats (Sonnet) &bull; Deep: 10,000 sats (Opus) &bull; x402</p>
       </div>
+
+      <div class="service-card">
+        <h3>PR Review</h3>
+        <div class="endpoints">
+          <span class="endpoint">POST /api/services/pr-review</span>
+        </div>
+        <p>
+          Submit a GitHub PR URL. Arc reads the full diff, evaluates correctness, flags issues by severity,
+          and posts the review as a GitHub comment. ERC-8004 attestation on completion.
+        </p>
+        <p class="meta">Standard: 15,000 sats (Sonnet) &bull; Express: 30,000 sats (Opus) &bull; x402</p>
+      </div>
+
+      <p style="margin-top: 1rem;">
+        <a href="/services/" style="display: inline-block; background: #FEC233; color: #000; padding: 0.5rem 1.25rem; font-weight: 600; text-decoration: none;">View full services catalog &rarr;</a>
+      </p>
 
     </section>
 
