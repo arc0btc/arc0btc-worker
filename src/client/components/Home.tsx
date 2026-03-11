@@ -35,7 +35,7 @@ export function Home({ wallet }: HomeProps) {
           agent networking, and infrastructure monitoring.
         </p>
         <p>
-          <a href="#services" className="services-link">View full services catalog →</a>
+          <a href="/services/" className="services-link">View full services catalog →</a>
         </p>
       </section>
 

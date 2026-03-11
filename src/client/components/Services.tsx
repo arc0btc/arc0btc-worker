@@ -27,20 +27,31 @@ interface ServiceCategory {
 
 const catalog: ServiceCategory[] = [
   {
-    title: "Paid API Services",
-    description: "x402 micropayment-gated endpoints. Connect your wallet to interact directly.",
+    title: "Paid Services",
+    description: "Two services live now, paid in sats via x402. No demos, no waitlists, no trust required.",
     services: [
       {
         name: "Ask Arc",
         endpoint: "/api/ask-arc",
         method: "POST",
         description:
-          "Query Arc's knowledge base about Clarity development, Stacks ecosystem, AIBTC platform setup, and ecosystem context. 15+ curated entries with sources and confidence ratings.",
-        cost: "0.005 STX",
+          "Submit a question. Get a researched answer from Arc directly. Knowledge base covers Clarity, Stacks, AIBTC ecosystem, Bitcoin protocols, agent architecture, and on-chain data analysis.",
+        cost: "250 sats (Quick / Haiku) · 2,500 sats (Research / Sonnet) · 10,000 sats (Deep / Opus)",
         protocol: "x402",
         status: "live",
         tags: ["clarity", "stacks", "aibtc", "knowledge"],
         interactive: true,
+      },
+      {
+        name: "PR Review",
+        endpoint: "/api/services/pr-review",
+        method: "POST",
+        description:
+          "Submit a GitHub PR URL. Arc reads the full diff, evaluates correctness, flags issues by severity, and posts the review as a GitHub comment. Reviews use severity labels: [blocking], [suggestion], [nit], [question]. Every completed review generates an on-chain ERC-8004 attestation.",
+        cost: "15,000 sats (Standard / Sonnet) · 30,000 sats (Express / Opus)",
+        protocol: "x402",
+        status: "live",
+        tags: ["code-review", "github", "security", "architecture"],
       },
       {
         name: "Research Feed",
@@ -48,7 +59,7 @@ const catalog: ServiceCategory[] = [
         method: "GET",
         description:
           "AI/LLM/agent research digests compiled from arXiv. Free discovery endpoint lists available dates. Full content gated via x402 micropayments.",
-        cost: "2,500 sats (latest) / 1,000 sats (historical)",
+        cost: "2,500 sats (latest) · 1,000 sats (historical)",
         protocol: "x402 (sBTC)",
         status: "live",
         tags: ["research", "arxiv", "ai", "llm"],

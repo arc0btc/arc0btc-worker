@@ -79,13 +79,29 @@ app.get("/", (c) => {
         {
           endpoint: "/api/ask-arc",
           method: "POST",
-          cost: { amount: 0.005, token: "STX" },
-          description: "Ask Arc about Clarity, Stacks, AIBTC platform",
+          cost: [
+            { tier: "Quick", amount: 250, unit: "sats", model: "Haiku" },
+            { tier: "Research", amount: 2500, unit: "sats", model: "Sonnet" },
+            { tier: "Deep", amount: 10000, unit: "sats", model: "Opus" },
+          ],
+          description: "Ask Arc about Clarity, Stacks, AIBTC, Bitcoin protocols, agent architecture",
+        },
+        {
+          endpoint: "/api/services/pr-review",
+          method: "POST",
+          cost: [
+            { tier: "Standard", amount: 15000, unit: "sats", model: "Sonnet" },
+            { tier: "Express", amount: 30000, unit: "sats", model: "Opus" },
+          ],
+          description: "Structured code review with severity labels and ERC-8004 attestation",
         },
         {
           endpoint: "/api/research",
           method: "GET",
-          cost: { amount: 2500, token: "sats (sBTC)" },
+          cost: [
+            { tier: "Latest", amount: 2500, unit: "sats (sBTC)" },
+            { tier: "Historical", amount: 1000, unit: "sats (sBTC)" },
+          ],
           description: "AI/LLM/agent research digests from arXiv (x402-gated)",
         },
       ],
@@ -108,6 +124,68 @@ app.get("/", (c) => {
   }
 
   // Fallback if assets not available (dev without build)
+  return c.text("arc0btc.com — build the client first: bun run build:client", 500);
+});
+
+// Services page — serve SPA for human visitors, JSON catalog for agents
+app.get("/services", (c) => {
+  return c.redirect("/services/", 301);
+});
+
+app.get("/services/", (c) => {
+  const agent = detectAgent(
+    c.req.header("user-agent") || "",
+    c.req.header("accept") || ""
+  );
+
+  if (agent.isAgent && agent.preferredFormat === "json") {
+    return c.json({
+      services: [
+        {
+          name: "Ask Arc",
+          endpoint: "/api/ask-arc",
+          method: "POST",
+          protocol: "x402",
+          tiers: [
+            { tier: "Quick", cost: 250, unit: "sats", model: "Haiku", description: "Simple factual queries, quick lookups" },
+            { tier: "Research", cost: 2500, unit: "sats", model: "Sonnet", description: "Synthesis, summaries, ecosystem questions" },
+            { tier: "Deep", cost: 10000, unit: "sats", model: "Opus", description: "Architecture analysis, complex code review, strategy" },
+          ],
+          rateLimit: "20 questions/day",
+        },
+        {
+          name: "PR Review",
+          endpoint: "/api/services/pr-review",
+          method: "POST",
+          protocol: "x402",
+          tiers: [
+            { tier: "Standard", cost: 15000, unit: "sats", model: "Sonnet", description: "Correctness, style, suggestions" },
+            { tier: "Express", cost: 30000, unit: "sats", model: "Opus", description: "Deep analysis, security, architecture" },
+          ],
+          rateLimit: "5 reviews/day",
+        },
+        {
+          name: "Research Feed",
+          endpoint: "/api/research",
+          method: "GET",
+          protocol: "x402",
+          tiers: [
+            { tier: "Latest", cost: 2500, unit: "sats (sBTC)", description: "Most recent digest" },
+            { tier: "Historical", cost: 1000, unit: "sats (sBTC)", description: "Past digests by date" },
+          ],
+        },
+      ],
+    });
+  }
+
+  // Human visitors — serve SPA via assets binding
+  if (c.env?.ASSETS) {
+    // Rewrite to index.html so the SPA router handles /services/
+    const url = new URL(c.req.url);
+    url.pathname = "/";
+    return c.env.ASSETS.fetch(new Request(url, c.req.raw));
+  }
+
   return c.text("arc0btc.com — build the client first: bun run build:client", 500);
 });
 
