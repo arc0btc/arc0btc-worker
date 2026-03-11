@@ -302,127 +302,62 @@ export async function handleFeed(c: Context): Promise<Response> {
 }
 
 /**
- * Handle upstream feed endpoint (GitHub activity)
+ * Factory that creates a handler for a single named feed.
+ *
+ * All three individual feed endpoints share the same logic:
+ * 1. Look up `kvKey` in FEEDS_KV
+ * 2. Return 404 if missing
+ * 3. Content-negotiate (JSON / Markdown / HTML) via detectAgent()
+ *
+ * Centralising the logic here means bug-fixes, caching headers, or
+ * pagination only need to be added once.
+ *
+ * @param kvKey  - KV key to read, e.g. "feed:upstream"
+ * @param title  - Human-readable title used in the HTML page
  */
-export async function handleFeedUpstream(c: Context): Promise<Response> {
-  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
-  if (!kv) {
-    return c.json({ error: "Feed service not configured" }, 503);
-  }
-
-  try {
-    const data = await kv.get("feed:upstream");
-
-    if (!data) {
-      return c.json({ error: "Feed not found" }, 404);
+function createFeedHandler(kvKey: string, title: string) {
+  return async (c: Context): Promise<Response> => {
+    const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
+    if (!kv) {
+      return c.json({ error: "Feed service not configured" }, 503);
     }
 
-    const agent = detectAgent(
-      c.req.header("user-agent") || "",
-      c.req.header("accept") || ""
-    );
+    try {
+      const data = await kv.get(kvKey);
 
-    if (agent.preferredFormat === "json") {
-      return c.json({
-        source: "upstream",
-        content: data,
-        format: "markdown",
-        timestamp: new Date().toISOString(),
-      });
-    } else if (agent.preferredFormat === "markdown") {
-      return c.text(data, 200, {
-        "Content-Type": "text/markdown",
-      });
-    } else {
-      return c.html(renderFeedPage("Upstream Activity", data));
+      if (!data) {
+        return c.json({ error: "Feed not found" }, 404);
+      }
+
+      const agent = detectAgent(
+        c.req.header("user-agent") || "",
+        c.req.header("accept") || ""
+      );
+
+      if (agent.preferredFormat === "json") {
+        return c.json({
+          source: kvKey.replace("feed:", ""),
+          content: data,
+          format: "markdown",
+          timestamp: new Date().toISOString(),
+        });
+      } else if (agent.preferredFormat === "markdown") {
+        return c.text(data, 200, {
+          "Content-Type": "text/markdown",
+        });
+      } else {
+        return c.html(renderFeedPage(title, data));
+      }
+    } catch (error) {
+      console.error(`[${kvKey}] Error fetching feed:`, error);
+      return c.json({ error: "Failed to fetch feed data" }, 500);
     }
-  } catch (error) {
-    console.error("[feed:upstream] Error fetching feed:", error);
-    return c.json({ error: "Failed to fetch feed data" }, 500);
-  }
+  };
 }
 
-/**
- * Handle trends feed endpoint (X activity)
- */
-export async function handleFeedTrends(c: Context): Promise<Response> {
-  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
-  if (!kv) {
-    return c.json({ error: "Feed service not configured" }, 503);
-  }
-
-  try {
-    const data = await kv.get("feed:trends");
-
-    if (!data) {
-      return c.json({ error: "Feed not found" }, 404);
-    }
-
-    const agent = detectAgent(
-      c.req.header("user-agent") || "",
-      c.req.header("accept") || ""
-    );
-
-    if (agent.preferredFormat === "json") {
-      return c.json({
-        source: "trends",
-        content: data,
-        format: "markdown",
-        timestamp: new Date().toISOString(),
-      });
-    } else if (agent.preferredFormat === "markdown") {
-      return c.text(data, 200, {
-        "Content-Type": "text/markdown",
-      });
-    } else {
-      return c.html(renderFeedPage("Ecosystem Trends", data));
-    }
-  } catch (error) {
-    console.error("[feed:trends] Error fetching feed:", error);
-    return c.json({ error: "Failed to fetch feed data" }, 500);
-  }
-}
-
-/**
- * Handle arxiv feed endpoint (Research papers)
- */
-export async function handleFeedArxiv(c: Context): Promise<Response> {
-  const kv = (c.env as { FEEDS_KV?: KVNamespace })?.FEEDS_KV;
-  if (!kv) {
-    return c.json({ error: "Feed service not configured" }, 503);
-  }
-
-  try {
-    const data = await kv.get("feed:arxiv");
-
-    if (!data) {
-      return c.json({ error: "Feed not found" }, 404);
-    }
-
-    const agent = detectAgent(
-      c.req.header("user-agent") || "",
-      c.req.header("accept") || ""
-    );
-
-    if (agent.preferredFormat === "json") {
-      return c.json({
-        source: "arxiv",
-        content: data,
-        format: "markdown",
-        timestamp: new Date().toISOString(),
-      });
-    } else if (agent.preferredFormat === "markdown") {
-      return c.text(data, 200, {
-        "Content-Type": "text/markdown",
-      });
-    } else {
-      return c.html(renderFeedPage("Research Papers", data));
-    }
-  } catch (error) {
-    console.error("[feed:arxiv] Error fetching feed:", error);
-    return c.json({ error: "Failed to fetch feed data" }, 500);
-  }
-}
+export const handleFeedUpstream = createFeedHandler("feed:upstream", "Upstream Activity");
+export const handleFeedTrends = createFeedHandler("feed:trends", "Ecosystem Trends");
+export const handleFeedArxiv = createFeedHandler("feed:arxiv", "Research Papers");
 
 // =============================================================================
 // Agent Card Handler
