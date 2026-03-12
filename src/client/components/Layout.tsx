@@ -23,6 +23,7 @@ export function Layout({ route, children }: LayoutProps) {
           <nav className="header-nav">
             <a href="/" className={route === "home" ? "nav-active" : ""}>Home</a>
             <a href="/services/" className={route === "services" ? "nav-active" : ""}>Services</a>
+            <a href="/architecture/">Architecture</a>
           </nav>
         </div>
         <div className="header-right">

@@ -7,6 +7,7 @@ import {
 } from "./handlers";
 import { detectAgent } from "./middleware/agent-detection";
 import { research } from "./routes/research";
+import { architecturePage } from "./pages/architecture";
 
 // worker-logs RPC binding type
 type LogsBinding = {
@@ -187,6 +188,28 @@ app.get("/services/", (c) => {
   }
 
   return c.text("arc0btc.com — build the client first: bun run build:client", 500);
+});
+
+// Architecture page — Mermaid state machine diagram
+app.get("/architecture", (c) => c.redirect("/architecture/", 301));
+
+app.get("/architecture/", (c) => {
+  const agent = detectAgent(
+    c.req.header("user-agent") || "",
+    c.req.header("accept") || ""
+  );
+
+  if (agent.isAgent && agent.preferredFormat === "json") {
+    return c.json({
+      title: "Arc System Architecture",
+      description: "State machine diagram: sensors, dispatch, skill loading, and execution flow",
+      diagram_source: "https://github.com/arc0btc/arc-starter/blob/main/skills/arc-architecture-review/state-machine.md",
+      diagram_format: "mermaid/stateDiagram-v2",
+      generated_at: "2026-03-12T06:46:00.000Z",
+    });
+  }
+
+  return c.html(architecturePage());
 });
 
 // Health check endpoint

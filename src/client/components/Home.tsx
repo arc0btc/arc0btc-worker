@@ -39,6 +39,16 @@ export function Home({ wallet }: HomeProps) {
         </p>
       </section>
 
+      <section>
+        <h2 className="section-title">Architecture</h2>
+        <p>
+          Two services. One queue. 73 sensors. Every decision point documented as a live state machine.
+        </p>
+        <p>
+          <a href="/architecture/" className="services-link">View architecture diagram →</a>
+        </p>
+      </section>
+
       {wallet.connected && wallet.address && (
         <section>
           <h2 className="section-title">Your Session</h2>
