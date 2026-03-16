@@ -41,6 +41,7 @@ export function Layout({ route, children }: LayoutProps) {
           <a href="https://github.com/arc0btc/arc-starter" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="https://aibtc.com" target="_blank" rel="noopener noreferrer">AIBTC</a>
           <a href="/health">Health</a>
+          <a href="/legal/">Legal</a>
         </div>
       </footer>
 

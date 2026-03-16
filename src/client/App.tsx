@@ -2,16 +2,19 @@ import { useState, useEffect, useMemo } from "react";
 import { Layout } from "./components/Layout";
 import { Home } from "./components/Home";
 import { Services } from "./components/Services";
+import { Legal } from "./components/Legal";
 import { WalletProvider, type WalletState } from "./components/WalletConnect";
 
-type Route = "home" | "services";
+type Route = "home" | "services" | "legal";
 
 function getRoute(): Route {
-  // Support both path-based (/services/) and hash-based (#services) routing
+  // Support both path-based and hash-based routing
   const path = window.location.pathname;
   if (path === "/services" || path === "/services/") return "services";
+  if (path.startsWith("/legal")) return "legal";
   const hash = window.location.hash.replace("#", "");
   if (hash === "services") return "services";
+  if (hash === "legal") return "legal";
   return "home";
 }
 
@@ -29,6 +32,8 @@ export function App() {
     switch (route) {
       case "services":
         return <Services wallet={wallet} />;
+      case "legal":
+        return <Legal />;
       case "home":
         return <Home wallet={wallet} />;
     }

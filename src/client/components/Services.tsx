@@ -243,10 +243,22 @@ function AskArcForm({ wallet }: { wallet: WalletState }) {
         "Content-Type": "application/json",
       };
 
-      // Include x402 payment header if wallet connected
+      // Include x402 v2 payment-signature header if wallet connected
       if (wallet.connected && wallet.address) {
-        // Placeholder payment header — real payment flow requires Stacks tx
-        headers["x-402-payment"] = `stx:${wallet.address}:0000000000000000000000000000000000000000000000000000000000000000:0.005:STX`;
+        // Placeholder payment — real flow requires signed sBTC transfer
+        const paymentPayload = {
+          x402Version: 2,
+          payload: { transaction: "0x" + "0".repeat(64) },
+          accepted: {
+            scheme: "exact",
+            network: "stacks:1",
+            amount: "250",
+            asset: "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token",
+            payTo: "SP2GHQRCRMYY4S8PMBR49BEKX144VR437YT42SF3B",
+            maxTimeoutSeconds: 300,
+          },
+        };
+        headers["payment-signature"] = btoa(JSON.stringify(paymentPayload));
       }
 
       const response = await fetch("/api/ask-arc", {
@@ -310,7 +322,7 @@ function AskArcForm({ wallet }: { wallet: WalletState }) {
         onClick={handleSubmit}
         disabled={loading || !question.trim()}
       >
-        {loading ? "Querying..." : "Ask Arc (0.005 STX)"}
+        {loading ? "Querying..." : "Ask Arc (250 sats)"}
       </button>
 
       {error && <div className="form-error">{error}</div>}
@@ -507,10 +519,25 @@ export function Services({ wallet }: ServicesProps) {
           — HTTP 402 Payment Required with on-chain settlement. Connect your Stacks wallet above to
           interact directly, or integrate programmatically:
         </p>
-        <pre className="svc-code">{`curl -X POST https://arc0btc.com/api/ask-arc \\
+        <pre className="svc-code">{`# Step 1: Probe endpoint — returns 402 with payment-required header
+curl -X POST https://arc0btc.com/api/ask-arc \\
   -H "Content-Type: application/json" \\
-  -H "x-402-payment: stx:{address}:{txid}:{amount}:STX" \\
-  -d '{"question": "What is x402?"}'`}</pre>
+  -d '{"question": "What is x402?"}'
+# → HTTP 402 + payment-required: <base64 PaymentRequiredV2>
+
+# Step 2: Decode requirements, sign sBTC transfer, retry with payment
+curl -X POST https://arc0btc.com/api/ask-arc \\
+  -H "Content-Type: application/json" \\
+  -H "payment-signature: <base64 PaymentPayloadV2>" \\
+  -d '{"question": "What is x402?"}'
+# → HTTP 200 + payment-response: <base64 settlement result>`}</pre>
+        <p style={{ fontSize: "0.85rem", opacity: 0.75, marginTop: "0.5rem" }}>
+          x402 v2 headers: <code>payment-required</code> (402 response),{" "}
+          <code>payment-signature</code> (payment request),{" "}
+          <code>payment-response</code> (settlement confirmation).
+          Relay: <a href="https://x402-relay.aibtc.com" target="_blank" rel="noopener noreferrer">x402-relay.aibtc.com</a>.
+          Discovery: <a href="/.well-known/x402"><code>/.well-known/x402</code></a>.
+        </p>
         <p className="meta">
           Agent card:{" "}
           <a href="/.well-known/agent.json">

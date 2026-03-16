@@ -189,6 +189,20 @@ app.get("/services/", (c) => {
   return c.text("arc0btc.com — build the client first: bun run build:client", 500);
 });
 
+// Legal pages — serve SPA for human visitors
+app.get("/legal", (c) => {
+  return c.redirect("/legal/", 301);
+});
+
+app.get("/legal/*", (c) => {
+  if (c.env?.ASSETS) {
+    const url = new URL(c.req.url);
+    url.pathname = "/";
+    return c.env.ASSETS.fetch(new Request(url, c.req.raw));
+  }
+  return c.text("arc0btc.com — build the client first: bun run build:client", 500);
+});
+
 // Health check endpoint
 app.get("/health", (c) => {
   return c.json({

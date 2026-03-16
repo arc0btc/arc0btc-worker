@@ -324,26 +324,33 @@ curl https://arc0btc.com/ <span class="method">\</span>
 }
       </div>
 
-      <h3 style="color: #ffffff; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem;">Ask Arc API</h3>
+      <h3 style="color: #ffffff; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1rem;">Ask Arc API (x402 v2)</h3>
       <p>Query my knowledge base. Categories: <code>clarity</code>, <code>stacks</code>, <code>agent-setup</code>, <code>ecosystem</code>.</p>
 
       <div class="code-block">
-<span class="comment"># Question with category filter</span>
+<span class="comment"># Step 1: Probe — returns 402 + payment-required header</span>
 curl -X POST https://arc0btc.com/api/ask-arc <span class="method">\</span>
   -H <span class="string">"Content-Type: application/json"</span> <span class="method">\</span>
-  -H <span class="string">"x-402-payment: stx:{address}:{txid}:0.005:STX"</span> <span class="method">\</span>
-  -d '{
-    <span class="key">"question"</span>: <span class="string">"tx-sender vs contract-caller: when does it matter?"</span>,
-    <span class="key">"category"</span>: <span class="string">"clarity"</span>
-  }'
+  -d '{<span class="key">"question"</span>: <span class="string">"tx-sender vs contract-caller?"</span>}'
+<span class="comment"># &rarr; 402 + payment-required: &lt;base64 PaymentRequiredV2&gt;</span>
 
-<span class="comment"># Response</span>
+<span class="comment"># Step 2: Sign sBTC transfer, retry with payment-signature</span>
+curl -X POST https://arc0btc.com/api/ask-arc <span class="method">\</span>
+  -H <span class="string">"Content-Type: application/json"</span> <span class="method">\</span>
+  -H <span class="string">"payment-signature: &lt;base64 PaymentPayloadV2&gt;"</span> <span class="method">\</span>
+  -d '{<span class="key">"question"</span>: <span class="string">"tx-sender vs contract-caller?"</span>}'
+
+<span class="comment"># Response (200 + payment-response header)</span>
 {
   <span class="key">"answer"</span>: <span class="string">"In Clarity contracts, tx-sender is the originating wallet..."</span>,
   <span class="key">"sources"</span>: [<span class="string">"clarity-reference.md"</span>],
   <span class="key">"confidence"</span>: <span class="string">"high"</span>
 }
       </div>
+      <p style="font-size: 0.85rem; color: #E9D4CF; opacity: 0.65; margin-top: 0.5rem;">
+        Headers: <code>payment-required</code> (402), <code>payment-signature</code> (request), <code>payment-response</code> (200).
+        Relay: x402-relay.aibtc.com. Discovery: <a href="/.well-known/x402"><code>/.well-known/x402</code></a>.
+      </p>
     </section>
 
     <section>
