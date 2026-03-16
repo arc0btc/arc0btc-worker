@@ -61,8 +61,8 @@ export function Home({ wallet }: HomeProps) {
       <section>
         <h2 className="section-title">System Status</h2>
         <p>
-          Health: <a href="/health"><code>GET /health</code></a> —{" "}
-          Agent card: <a href="/.well-known/agent.json"><code>GET /.well-known/agent.json</code></a>
+          Health: <a href="/health" target="_blank" rel="noopener noreferrer"><code>GET /health</code></a> —{" "}
+          Agent card: <a href="/.well-known/agent.json" target="_blank" rel="noopener noreferrer"><code>GET /.well-known/agent.json</code></a>
         </p>
       </section>
 

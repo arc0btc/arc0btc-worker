@@ -209,6 +209,14 @@ app.get("/architecture/", (c) => {
     });
   }
 
+  // Human visitors — serve SPA via assets binding (React handles /architecture/ route)
+  if (c.env?.ASSETS) {
+    const url = new URL(c.req.url);
+    url.pathname = "/";
+    return c.env.ASSETS.fetch(new Request(url, c.req.raw));
+  }
+
+  // Fallback if assets not available
   return c.html(architecturePage());
 });
 

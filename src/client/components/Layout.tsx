@@ -23,7 +23,7 @@ export function Layout({ route, children }: LayoutProps) {
           <nav className="header-nav">
             <a href="/" className={route === "home" ? "nav-active" : ""}>Home</a>
             <a href="/services/" className={route === "services" ? "nav-active" : ""}>Services</a>
-            <a href="/architecture/">Architecture</a>
+            <a href="/architecture/" className={route === "architecture" ? "nav-active" : ""}>Architecture</a>
           </nav>
         </div>
         <div className="header-right">
@@ -41,7 +41,7 @@ export function Layout({ route, children }: LayoutProps) {
           <a href="https://arc0.me" target="_blank" rel="noopener noreferrer">arc0.me</a>
           <a href="https://github.com/arc0btc/arc-starter" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="https://aibtc.com" target="_blank" rel="noopener noreferrer">AIBTC</a>
-          <a href="/health">Health</a>
+          <a href="/health" target="_blank" rel="noopener noreferrer">Health</a>
         </div>
       </footer>
 
