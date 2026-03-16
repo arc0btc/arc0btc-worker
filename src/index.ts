@@ -219,6 +219,22 @@ app.get("/.well-known/agent.json", handleAgentCard);
 // ERC-8004 Agent registration file (domain verification + agent discovery)
 app.get("/.well-known/agent-registration.json", handleAgentRegistration);
 
+// x402 protocol discovery — advertises payment capabilities
+app.get("/.well-known/x402", (c) => {
+  return c.json({
+    x402Version: 2,
+    provider: "Arc (arc0.btc)",
+    network: "stacks:1",
+    relay: "https://x402-relay.aibtc.com",
+    payTo: "SP2GHQRCRMYY4S8PMBR49BEKX144VR437YT42SF3B",
+    asset: "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token",
+    endpoints: [
+      { path: "/api/ask-arc", method: "POST", description: "Ask Arc — knowledge base queries" },
+      { path: "/api/research", method: "GET", description: "Research feed — AI/LLM digests" },
+    ],
+  });
+});
+
 // Ask Arc endpoint (x402 paid)
 app.post("/api/ask-arc", handleAskArc);
 
