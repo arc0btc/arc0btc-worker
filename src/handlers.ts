@@ -4,115 +4,52 @@
 
 import type { Context } from "hono";
 import { findAnswer } from "./knowledge";
-
-// =============================================================================
-// x402 Payment Verification (Stubbed for Phase 1)
-// =============================================================================
-
-/**
- * Check for x402 payment header and verify payment
- *
- * Phase 2: Parses x-402-payment header and validates format
- * Format: stx:{address}:{txid}:{amount}:{token}
- *
- * Note: Phase 2 trusts the header (no on-chain verification yet)
- * Future: Add on-chain tx verification via Stacks API
- */
-function verifyX402Payment(c: Context): {
-  verified: boolean;
-  callerAddress?: string;
-  amount?: number;
-  token?: string;
-  error?: string;
-} {
-  const paymentHeader = c.req.header("x-402-payment");
-
-  if (!paymentHeader) {
-    // No payment header - return payment required
-    return {
-      verified: false,
-      error: "Payment required",
-    };
-  }
-
-  console.log("[x402] Payment header present:", paymentHeader);
-
-  // Parse header format: stx:{address}:{txid}:{amount}:{token}
-  const parts = paymentHeader.split(":");
-
-  if (parts.length < 5 || parts[0] !== "stx") {
-    console.log("[x402] Invalid header format:", paymentHeader);
-    return {
-      verified: false,
-      error: "Invalid payment header format (expected: stx:address:txid:amount:token)",
-    };
-  }
-
-  const [, address, txid, amountStr, token] = parts;
-
-  // Validate address (basic check: starts with SP or SM, 41 chars)
-  if (!address.match(/^S[PM][0-9A-Z]{39}$/)) {
-    console.log("[x402] Invalid Stacks address:", address);
-    return {
-      verified: false,
-      error: "Invalid Stacks address in payment header",
-    };
-  }
-
-  // Validate txid (64 hex chars with optional 0x prefix)
-  const cleanTxid = txid.startsWith("0x") ? txid.slice(2) : txid;
-  if (!cleanTxid.match(/^[0-9a-f]{64}$/i)) {
-    console.log("[x402] Invalid transaction ID:", txid);
-    return {
-      verified: false,
-      error: "Invalid transaction ID in payment header",
-    };
-  }
-
-  // Validate amount (must be positive number)
-  const amount = parseFloat(amountStr);
-  if (isNaN(amount) || amount <= 0) {
-    console.log("[x402] Invalid amount:", amountStr);
-    return {
-      verified: false,
-      error: "Invalid amount in payment header",
-    };
-  }
-
-  if (!token) {
-    console.log("[x402] Invalid token:", token);
-    return {
-      verified: false,
-      error: "Invalid token in payment header",
-    };
-  }
-
-  console.log(
-    `[x402] Payment verified: ${amount} ${token} from ${address} (tx: ${cleanTxid})`
-  );
-
-  return {
-    verified: true,
-    callerAddress: address,
-    amount,
-    token,
-  };
-}
+import { buildPaymentRequired, verifyPayment } from "./lib/x402";
 
 // =============================================================================
 // Ask Arc Handler
 // =============================================================================
 
 export async function handleAskArc(c: Context): Promise<Response> {
-  const payment = verifyX402Payment(c);
+  const PRICE_SATS = 250; // Quick tier default
 
-  if (!payment.verified) {
-    return c.json(
-      {
+  const paymentHeader = c.req.header("payment-signature");
+
+  if (!paymentHeader) {
+    const paymentRequired = buildPaymentRequired(
+      `${new URL(c.req.url).origin}/api/ask-arc`,
+      PRICE_SATS,
+      "Ask Arc — knowledge base query"
+    );
+
+    return new Response(
+      JSON.stringify({
         error: "Payment required",
         code: "PAYMENT_REQUIRED",
-        cost: 0.005,
-        token: "STX",
+        pricing: {
+          quick: { amount: 250, unit: "sats (sBTC)", model: "Haiku" },
+          research: { amount: 2500, unit: "sats (sBTC)", model: "Sonnet" },
+          deep: { amount: 10000, unit: "sats (sBTC)", model: "Opus" },
+        },
+      }),
+      {
+        status: 402,
+        headers: {
+          "Content-Type": "application/json",
+          "payment-required": paymentRequired.headers.get("payment-required") || "",
+        },
+      }
+    );
+  }
+
+  const payment = await verifyPayment(paymentHeader, PRICE_SATS);
+
+  if (!payment.success) {
+    return c.json(
+      {
+        error: "Payment verification failed",
+        code: "PAYMENT_FAILED",
+        detail: payment.error,
       },
       402
     );
@@ -212,11 +149,26 @@ export async function handleAskArc(c: Context): Promise<Response> {
       `[ask-arc] Query processed in ${responseTime}ms: "${question.slice(0, 50)}..." -> confidence: ${result.confidence}`
     );
 
-    return c.json({
-      answer: result.answer,
-      sources: result.sources,
-      confidence: result.confidence,
-    });
+    return new Response(
+      JSON.stringify({
+        answer: result.answer,
+        sources: result.sources,
+        confidence: result.confidence,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "payment-response": btoa(
+            JSON.stringify({
+              success: true,
+              payer: payment.payer,
+              transaction: payment.txid,
+            })
+          ),
+        },
+      }
+    );
   } catch (error) {
     console.error("[ask-arc] Error processing query:", error);
 
