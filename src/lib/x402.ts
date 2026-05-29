@@ -48,6 +48,18 @@ export interface SettlementResponseV2 {
 }
 
 /**
+ * Unicode-safe base64 encode. `btoa` only accepts Latin1 characters and throws
+ * on anything outside it (e.g. an em-dash in a description), so encode to UTF-8
+ * bytes first.
+ */
+export function encodeBase64(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/**
  * Build a 402 Payment Required response for research content.
  */
 export function buildPaymentRequired(
@@ -81,7 +93,7 @@ export function buildPaymentRequired(
     ],
   };
 
-  const encoded = btoa(JSON.stringify(body));
+  const encoded = encodeBase64(JSON.stringify(body));
 
   return new Response(JSON.stringify(body, null, 2), {
     status: 402,

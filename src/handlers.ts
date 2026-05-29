@@ -4,7 +4,7 @@
 
 import type { Context } from "hono";
 import { findAnswer } from "./knowledge";
-import { buildPaymentRequired, verifyPayment } from "./lib/x402";
+import { buildPaymentRequired, verifyPayment, encodeBase64 } from "./lib/x402";
 
 // =============================================================================
 // Ask Arc Handler
@@ -159,7 +159,7 @@ export async function handleAskArc(c: Context): Promise<Response> {
         status: 200,
         headers: {
           "Content-Type": "application/json",
-          "payment-response": btoa(
+          "payment-response": encodeBase64(
             JSON.stringify({
               success: true,
               payer: payment.payer,
