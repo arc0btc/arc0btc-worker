@@ -2,10 +2,25 @@
  * Endpoint tests for arc0btc worker
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Hono } from "hono";
 import worker from "../src/index";
 import { requestLogging, type LogsBinding } from "../src/middleware/request-logging";
+
+// Payment verification calls the live x402 relay; mock it to a successful
+// settlement so payment-gated handlers are reachable in tests. buildPaymentRequired
+// and encodeBase64 stay real.
+vi.mock("../src/lib/x402", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/lib/x402")>();
+  return {
+    ...actual,
+    verifyPayment: vi.fn(async () => ({
+      success: true,
+      payer: "SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7",
+      txid: "0xabcd1234",
+    })),
+  };
+});
 
 describe("arc0btc worker endpoints", () => {
   describe("GET /health", () => {
@@ -25,25 +40,43 @@ describe("arc0btc worker endpoints", () => {
   });
 
   describe("GET /", () => {
-    it("returns 200 HTML landing page", async () => {
-      const req = new Request("http://localhost/", { method: "GET" });
+    it("returns the service directory as JSON for agent clients", async () => {
+      const req = new Request("http://localhost/", {
+        method: "GET",
+        headers: { "user-agent": "claude-bot/1.0", accept: "application/json" },
+      });
       const res = await worker.fetch(req);
 
       expect(res.status).toBe(200);
-      expect(res.headers.get("content-type")).toContain("text/html");
+      expect(res.headers.get("content-type")).toContain("application/json");
 
-      const html = await res.text();
-      expect(html).toContain("Arc");
-      expect(html).toContain("arc0.btc");
-      expect(html).toContain("/api/ask-arc");
+      const data = (await res.json()) as {
+        identity: { name: string; bns: string };
+        services: { endpoint: string }[];
+      };
+      expect(data.identity.name).toBe("Arc");
+      expect(data.identity.bns).toBe("arc0.btc");
+      expect(data.services.some((s) => s.endpoint === "/api/ask-arc")).toBe(true);
     });
   });
 
   describe("POST /api/ask-arc", () => {
-    // Valid payment header for tests
-    // Format: stx:{address}:{txid}:{amount}:{token}
-    const validPaymentHeader =
-      "stx:SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7:0xabcd1234567890abcdef1234567890abcdef1234567890abcdef1234567890ab:0.005:STX";
+    // A base64-encoded x402 v2 payment payload. verifyPayment is mocked, so only
+    // its presence matters; the shape mirrors what the real client sends.
+    const validPaymentHeader = btoa(
+      JSON.stringify({
+        x402Version: 2,
+        accepted: {
+          scheme: "exact",
+          network: "stacks:1",
+          amount: "250",
+          asset: "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token",
+          payTo: "SP2GHQRCRMYY4S8PMBR49BEKX144VR437YT42SF3B",
+          maxTimeoutSeconds: 300,
+        },
+        payload: { transaction: "0xabcd1234" },
+      })
+    );
 
     it("returns 402 when payment header is missing", async () => {
       const req = new Request("http://localhost/api/ask-arc", {
@@ -64,7 +97,7 @@ describe("arc0btc worker endpoints", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-402-payment": validPaymentHeader,
+          "payment-signature": validPaymentHeader,
         },
         body: JSON.stringify({ question: "What is tx-sender?" }),
       });
@@ -85,7 +118,7 @@ describe("arc0btc worker endpoints", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-402-payment": validPaymentHeader,
+          "payment-signature": validPaymentHeader,
         },
         body: "invalid json",
       });
@@ -102,7 +135,7 @@ describe("arc0btc worker endpoints", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-402-payment": validPaymentHeader,
+          "payment-signature": validPaymentHeader,
         },
         body: JSON.stringify({}),
       });
@@ -121,7 +154,7 @@ describe("arc0btc worker endpoints", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-402-payment": validPaymentHeader,
+          "payment-signature": validPaymentHeader,
         },
         body: JSON.stringify({ question: longQuestion }),
       });
@@ -139,7 +172,7 @@ describe("arc0btc worker endpoints", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-402-payment": validPaymentHeader,
+          "payment-signature": validPaymentHeader,
         },
         body: JSON.stringify({
           question: "What is this?",
@@ -160,7 +193,7 @@ describe("arc0btc worker endpoints", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-402-payment": validPaymentHeader,
+          "payment-signature": validPaymentHeader,
         },
         body: JSON.stringify({
           question: "What is ERC-8004?",
