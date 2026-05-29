@@ -6,14 +6,8 @@ import {
   handleAgentRegistration,
 } from "./handlers";
 import { detectAgent } from "./middleware/agent-detection";
+import { requestLogging, type LogsBinding } from "./middleware/request-logging";
 import { research } from "./routes/research";
-
-// worker-logs RPC binding type
-type LogsBinding = {
-  info: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
-  warn: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
-  error: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
-};
 
 // Assets binding from wrangler config (serves built React SPA)
 type AssetsBinding = {
@@ -33,43 +27,8 @@ const app = new Hono<{ Bindings: Bindings }>();
 // Enable CORS for cross-origin requests
 app.use("*", cors());
 
-// Request logging middleware — fire-and-forget to worker-logs
-// Only emits for error responses (4xx → warn, 5xx → error).
-// 2xx/3xx are intentionally silent: CF Workers observability already captures
-// per-request analytics, so access-log noise is redundant and costs DO invocations.
-app.use("*", async (c, next) => {
-  const start = Date.now();
-  await next();
-  const status = c.res.status;
-  if (status < 400) return;
-  const logs = c.env?.LOGS;
-  if (logs) {
-    const duration = Date.now() - start;
-    const pathname = c.req.path;
-    const context = {
-      method: c.req.method,
-      path: pathname,
-      status,
-      duration_ms: duration,
-      user_agent: c.req.header("user-agent")?.slice(0, 100),
-    };
-    const logEntry = (
-      status >= 500
-        ? logs.error(APP_ID, `${c.req.method} ${pathname}`, context)
-        : logs.warn(APP_ID, `${c.req.method} ${pathname}`, context)
-    ).catch((err: unknown) => {
-      console.error("[logging] Failed to send log:", err);
-    });
-    // Use waitUntil if available to avoid blocking the response.
-    // c.executionCtx throws when no ExecutionContext is provided (e.g. in tests),
-    // so guard with try/catch rather than optional chaining on the getter itself.
-    try {
-      c.executionCtx.waitUntil(logEntry);
-    } catch {
-      // No ExecutionContext available (local dev / test) — fire-and-forget without waitUntil
-    }
-  }
-});
+// Request logging middleware — fire-and-forget to worker-logs (errors only)
+app.use("*", requestLogging(APP_ID));
 
 // Landing page — JSON for agent clients, SPA for humans (served by assets binding)
 app.get("/", (c) => {
