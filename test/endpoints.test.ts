@@ -2,7 +2,7 @@
  * Endpoint tests for arc0btc worker
  */
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import worker from "../src/index";
 
 describe("arc0btc worker endpoints", () => {
@@ -180,18 +180,18 @@ describe("arc0btc worker endpoints", () => {
     function makeMockEnv() {
       const calls: { method: string; appId: string; msg: string; context: Record<string, unknown> }[] = [];
       const LOGS = {
-        info: vi.fn((appId: string, msg: string, context?: Record<string, unknown>) => {
+        info: (appId: string, msg: string, context?: Record<string, unknown>) => {
           calls.push({ method: "info", appId, msg, context: context ?? {} });
           return Promise.resolve();
-        }),
-        warn: vi.fn((appId: string, msg: string, context?: Record<string, unknown>) => {
+        },
+        warn: (appId: string, msg: string, context?: Record<string, unknown>) => {
           calls.push({ method: "warn", appId, msg, context: context ?? {} });
           return Promise.resolve();
-        }),
-        error: vi.fn((appId: string, msg: string, context?: Record<string, unknown>) => {
+        },
+        error: (appId: string, msg: string, context?: Record<string, unknown>) => {
           calls.push({ method: "error", appId, msg, context: context ?? {} });
           return Promise.resolve();
-        }),
+        },
       };
       return { env: { LOGS }, calls };
     }
@@ -203,9 +203,7 @@ describe("arc0btc worker endpoints", () => {
       expect(calls).toHaveLength(0);
     });
 
-    it("stays silent on a 3xx-class status (2xx route confirms status < 400 guard)", async () => {
-      // The app has no built-in redirect route; GET / returns 200.
-      // This test documents that any status < 400 is silent, using GET / as a second 2xx data point.
+    it("stays silent on another 2xx response (GET / → 200 HTML)", async () => {
       const { env, calls } = makeMockEnv();
       const req = new Request("http://localhost/");
       await worker.fetch(req, env);

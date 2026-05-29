@@ -45,7 +45,7 @@ app.use("*", async (c, next) => {
   const logs = c.env?.LOGS;
   if (logs) {
     const duration = Date.now() - start;
-    const pathname = new URL(c.req.url).pathname;
+    const pathname = c.req.path;
     const context = {
       method: c.req.method,
       path: pathname,
