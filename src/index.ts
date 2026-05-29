@@ -6,14 +6,8 @@ import {
   handleAgentRegistration,
 } from "./handlers";
 import { detectAgent } from "./middleware/agent-detection";
+import { requestLogging, type LogsBinding } from "./middleware/request-logging";
 import { research } from "./routes/research";
-
-// worker-logs RPC binding type
-type LogsBinding = {
-  info: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
-  warn: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
-  error: (appId: string, msg: string, context?: Record<string, unknown>) => Promise<void>;
-};
 
 // Assets binding from wrangler config (serves built React SPA)
 type AssetsBinding = {
@@ -33,28 +27,8 @@ const app = new Hono<{ Bindings: Bindings }>();
 // Enable CORS for cross-origin requests
 app.use("*", cors());
 
-// Request logging middleware — fire-and-forget to worker-logs
-app.use("*", async (c, next) => {
-  const start = Date.now();
-  await next();
-  const logs = c.env?.LOGS;
-  if (logs) {
-    const duration = Date.now() - start;
-    const ctx = c.executionCtx;
-    const logEntry = logs.info(APP_ID, `${c.req.method} ${new URL(c.req.url).pathname}`, {
-      method: c.req.method,
-      path: new URL(c.req.url).pathname,
-      status: c.res.status,
-      duration_ms: duration,
-      user_agent: c.req.header("user-agent")?.slice(0, 100),
-    }).catch((err: unknown) => {
-      console.error("[logging] Failed to send log:", err);
-    });
-    if (ctx?.waitUntil) {
-      ctx.waitUntil(logEntry);
-    }
-  }
-});
+// Request logging middleware — fire-and-forget to worker-logs (errors only)
+app.use("*", requestLogging(APP_ID));
 
 // Landing page — JSON for agent clients, SPA for humans (served by assets binding)
 app.get("/", (c) => {
