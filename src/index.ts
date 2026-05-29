@@ -34,24 +34,39 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use("*", cors());
 
 // Request logging middleware — fire-and-forget to worker-logs
+// Only emits for error responses (4xx → warn, 5xx → error).
+// 2xx/3xx are intentionally silent: CF Workers observability already captures
+// per-request analytics, so access-log noise is redundant and costs DO invocations.
 app.use("*", async (c, next) => {
   const start = Date.now();
   await next();
+  const status = c.res.status;
+  if (status < 400) return;
   const logs = c.env?.LOGS;
   if (logs) {
     const duration = Date.now() - start;
-    const ctx = c.executionCtx;
-    const logEntry = logs.info(APP_ID, `${c.req.method} ${new URL(c.req.url).pathname}`, {
+    const pathname = new URL(c.req.url).pathname;
+    const context = {
       method: c.req.method,
-      path: new URL(c.req.url).pathname,
-      status: c.res.status,
+      path: pathname,
+      status,
       duration_ms: duration,
       user_agent: c.req.header("user-agent")?.slice(0, 100),
-    }).catch((err: unknown) => {
+    };
+    const logEntry = (
+      status >= 500
+        ? logs.error(APP_ID, `${c.req.method} ${pathname}`, context)
+        : logs.warn(APP_ID, `${c.req.method} ${pathname}`, context)
+    ).catch((err: unknown) => {
       console.error("[logging] Failed to send log:", err);
     });
-    if (ctx?.waitUntil) {
-      ctx.waitUntil(logEntry);
+    // Use waitUntil if available to avoid blocking the response.
+    // c.executionCtx throws when no ExecutionContext is provided (e.g. in tests),
+    // so guard with try/catch rather than optional chaining on the getter itself.
+    try {
+      c.executionCtx.waitUntil(logEntry);
+    } catch {
+      // No ExecutionContext available (local dev / test) — fire-and-forget without waitUntil
     }
   }
 });
