@@ -12,7 +12,8 @@
     "deploy:dry": "npm run build:client && wrangler deploy --dry-run",
     "deploy:production:dry": "npm run build:client && wrangler deploy --env production --dry-run",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit"
   },
   "dependencies": {
     "@stacks/connect": "^8.2.5",
@@ -33,5 +34,10 @@
     "vite": "^7.3.1",
     "vitest": "^3.2.0",
     "wrangler": "^4.0.0"
+  },
+  "overrides": {
+    "@vitest/runner": "3.2.4",
+    "@vitest/snapshot": "3.2.4",
+    "@vitest/utils": "3.2.4"
   }
 }

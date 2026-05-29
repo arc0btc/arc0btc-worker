@@ -1,6 +1,5 @@
 import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { showConnect } from "@stacks/connect";
-import { STACKS_MAINNET } from "@stacks/network";
 
 export interface WalletState {
   connected: boolean;
@@ -34,7 +33,6 @@ export function WalletProvider({ wallet, setWallet, children }: WalletProviderPr
         name: "Arc - arc0.btc",
         icon: "https://arc0.me/avatar.png",
       },
-      network: STACKS_MAINNET,
       onFinish: (data) => {
         const address = data.authResponsePayload?.profile?.stxAddress?.mainnet;
         if (address) {
