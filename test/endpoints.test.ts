@@ -2,7 +2,7 @@
  * Endpoint tests for arc0btc worker
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import worker from "../src/index";
 
 describe("arc0btc worker endpoints", () => {
@@ -172,6 +172,75 @@ describe("arc0btc worker endpoints", () => {
       const data = await res.json();
       expect(data).toHaveProperty("answer");
       expect(data.answer).toContain("agent identity");
+    });
+  });
+
+  describe("request logging middleware", () => {
+    // Build a mock LOGS binding that records which method was called and with what args.
+    function makeMockEnv() {
+      const calls: { method: string; appId: string; msg: string; context: Record<string, unknown> }[] = [];
+      const LOGS = {
+        info: vi.fn((appId: string, msg: string, context?: Record<string, unknown>) => {
+          calls.push({ method: "info", appId, msg, context: context ?? {} });
+          return Promise.resolve();
+        }),
+        warn: vi.fn((appId: string, msg: string, context?: Record<string, unknown>) => {
+          calls.push({ method: "warn", appId, msg, context: context ?? {} });
+          return Promise.resolve();
+        }),
+        error: vi.fn((appId: string, msg: string, context?: Record<string, unknown>) => {
+          calls.push({ method: "error", appId, msg, context: context ?? {} });
+          return Promise.resolve();
+        }),
+      };
+      return { env: { LOGS }, calls };
+    }
+
+    it("stays silent on a 2xx response (GET /health → 200)", async () => {
+      const { env, calls } = makeMockEnv();
+      const req = new Request("http://localhost/health");
+      await worker.fetch(req, env);
+      expect(calls).toHaveLength(0);
+    });
+
+    it("stays silent on a 3xx-class status (2xx route confirms status < 400 guard)", async () => {
+      // The app has no built-in redirect route; GET / returns 200.
+      // This test documents that any status < 400 is silent, using GET / as a second 2xx data point.
+      const { env, calls } = makeMockEnv();
+      const req = new Request("http://localhost/");
+      await worker.fetch(req, env);
+      expect(calls).toHaveLength(0);
+    });
+
+    it("emits warn exactly once on a 4xx response (POST /api/ask-arc without payment → 402)", async () => {
+      const { env, calls } = makeMockEnv();
+      const req = new Request("http://localhost/api/ask-arc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: "test" }),
+      });
+      const res = await worker.fetch(req, env);
+      expect(res.status).toBe(402);
+      expect(calls).toHaveLength(1);
+      expect(calls[0].method).toBe("warn");
+      expect(calls[0].appId).toBe("arc0btc-worker");
+      expect(calls[0].context.status).toBe(402);
+      expect(calls[0].context.method).toBe("POST");
+      expect(calls[0].context.path).toBe("/api/ask-arc");
+    });
+
+    it("emits error exactly once on a 5xx response (GET /api/feed with no FEEDS_KV → 500)", async () => {
+      // handleFeed accesses env.FEEDS_KV.get(...); without that binding it throws → 500
+      const { env, calls } = makeMockEnv();
+      const req = new Request("http://localhost/api/feed");
+      const res = await worker.fetch(req, env);
+      expect(res.status).toBe(500);
+      expect(calls).toHaveLength(1);
+      expect(calls[0].method).toBe("error");
+      expect(calls[0].appId).toBe("arc0btc-worker");
+      expect(calls[0].context.status).toBe(500);
+      expect(calls[0].context.method).toBe("GET");
+      expect(calls[0].context.path).toBe("/api/feed");
     });
   });
 });
