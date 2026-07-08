@@ -17,7 +17,7 @@
 
   // Observability for debugging
   "observability": {
-    "enabled": true
+    "enabled": false
   },
 
   // KV namespace for research digests
